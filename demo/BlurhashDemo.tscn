@@ -1,0 +1,24 @@
+[gd_scene load_steps=3 format=3 uid="uid://b7mlccv5ky88"]
+
+[ext_resource type="Script" path="res://demo/BlurhashDemo.gd" id="1_p23xw"]
+[ext_resource type="Texture2D" uid="uid://cxdag85qa4wjh" path="res://icon.svg" id="2_xcswv"]
+
+[node name="BlurhashDemo" type="Node"]
+script = ExtResource("1_p23xw")
+
+[node name="Original" type="TextureRect" parent="."]
+custom_minimum_size = Vector2(200, 120)
+offset_left = 250.0
+offset_top = 163.0
+offset_right = 450.0
+offset_bottom = 283.0
+texture = ExtResource("2_xcswv")
+expand_mode = 1
+
+[node name="Blurhash" type="TextureRect" parent="."]
+custom_minimum_size = Vector2(200, 120)
+offset_left = 486.0
+offset_top = 163.0
+offset_right = 686.0
+offset_bottom = 283.0
+expand_mode = 1

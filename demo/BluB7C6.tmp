@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://b7mlccv5ky88"]
+
+[ext_resource type="Script" path="res://Demo/BlurhashDemo.gd" id="1_p23xw"]
+
+[node name="BlurhashDemo" type="Node"]
+script = ExtResource("1_p23xw")
+
+[node name="TextureRect" type="TextureRect" parent="."]
+stretch_mode = 2
