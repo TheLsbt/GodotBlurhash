@@ -1,30 +1,30 @@
-"""
-Pure godot blurhash decoder with no additional dependencies, for
-both de- and encoding.
 
-Very close port of the original Swift implementation by Dag Ågren.
-"""
+## Pure godot blurhash decoder with no additional dependencies, for both de- and encoding.
+## Very close port of the original Swift implementation by Dag Ågren.
+## @tutorial(Official Website): https://blurha.sh/
+## @tutorial(Blurhash Github): https://github.com/woltapp/blurhash
 
 extends  RefCounted
 class_name Blurhash
 
-# Alphabet for base 83
-const alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz#$%*+,-.:;=?@[]^_{|}~"
+## Alphabet for base 83
+const alphabet =\
+ "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz#$%*+,-.:;=?@[]^_{|}~"
 
 
+## Decodes a base83 string, as used in blurhash, to an integer.
 static func base83_decode(base83_str: String) -> int:
-	# Decodes a base83 string, as used in blurhash, to an integer.
 	var value := 0
 	for base83_char in base83_str:
 		value = value * 83 + alphabet.find(base83_char)
 	return value
 
 
+## Decodes an integer to a base83 string, as used in blurhash.
+## [param length] is how long the resulting string should be.
+## Will complain if the specified [param length] is too short.
 static func base83_encode(value: int, length: int) -> String:
-	# Decodes an integer to a base83 string, as used in blurhash.
 
-	# Length is how long the resulting string should be. Will complain
-	# if the specified length is too short.
 	var data := ""
 	var div = 1
 	for i in range(length - 1):
@@ -38,30 +38,30 @@ static func base83_encode(value: int, length: int) -> String:
 
 
 
+## srgb 0-255 integer to linear 0.0-1.0 floating point conversion.
 static func srgb_to_linear(value: float):
-	# srgb 0-255 integer to linear 0.0-1.0 floating point conversion.
 	value = value / 255.0
 	if value <= 0.04045:
 		return value / 12.92
 	return pow((value + 0.055) / 1.055, 2.4)
 
 
-static func sign_pow(value: float, exp: float):
-	# Sign-preserving exponentiation.
-	var result := pow(abs(value), exp)
-	return -result if value < 0 else result
-
-
+## linear 0.0-1.0 floating point to srgb 0-255 integer conversion.
 static func linear_to_srgb(value: float) -> int:
-	# linear 0.0-1.0 floating point to srgb 0-255 integer conversion.
 	value = max(0.0, min(1.0, value))
 	if value <= 0.0031308:
 		return int(value * 12.92 * 255 + 0.5)
 	return int((1.055 * pow(value, 1 / 2.4) - 0.055) * 255 + 0.5)
 
 
+## Sign-preserving exponentiation (similar to Python Math.copysign).
+static func sign_pow(value: float, exp: float):
+	var result := pow(abs(value), exp)
+	return -result if value < 0 else result
+
+
+## Decodes and returns the number of x and y components in the given blurhash.
 static func blurhash_components(blurhash: String) -> Vector2:
-	# Decodes and returns the number of x and y components in the given blurhash.
 	if blurhash.length() < 6:
 		printerr("BlurHash must be at least 6 characters long.")
 
@@ -88,20 +88,13 @@ static func is_blurhash_valid(blurhash: String) -> bool:
 	return blurhash.length() == 4 + 2 * (size_x * size_y)
 
 
-static func blurhash_decode(blurhash: String, width: int, height: int, punch := 1.0) -> Texture:
-	# Decodes the given blurhash to an image of the specified size.
-
-	# Returns the resulting image a list of lists of 3-value sRGB 8 bit integer
-	# lists. Set linear to True if you would prefer to get linear floating point
-	# RGB back.
-
-	# The punch parameter can be used to de- or increase the contrast of the
-	# resulting image.
-
-	# As per the original implementation it is suggested to only decode
-	# to a relatively small size and then scale the result up, as it
-	# basically looks the same anyways.
-
+## Decodes the given blurhash to an image of the specified [param width] and [param height].
+## Returns a [Texture].[br]
+## [param punch] can be used to change the contrast of the resulting image.[br][br]
+## [b]As per the original implementation it is suggested to only decode
+## to a relatively small size and then scale the result up, as it
+## basically looks the same anyways.[b]
+static func decode(blurhash: String, width: int, height: int, punch := 1.0) -> Texture:
 	if !is_blurhash_valid(blurhash):
 		return null
 
@@ -160,15 +153,8 @@ static func blurhash_decode(blurhash: String, width: int, height: int, punch := 
 	return ImageTexture.create_from_image(img)
 
 
-#Calculates the blurhash for an image using the given x and y component counts.
-
-#Image should be a 3-dimensional array, with the first dimension being y, the second
-#being x, and the third being the three rgb components that are assumed to be 0-255
-#srgb integers (incidentally, this is the format you will get from a PIL RGB image).
-
-#You can also pass in already linear data - to do this, set linear to True. This is
-#useful if you want to encode a version of your image resized to a smaller size (which
-#you should ideally do in linear colour).
+## Calculates the blurhash for an image using [param components_x] and [param components_y].
+## Returns a [String] with the blurhash.
 static func encode(texture: Texture2D, components_x: int = 4, components_y: int = 3) -> String:
 	if components_x < 1 or components_x > 9 or components_y < 1 or components_y > 9:
 		printerr("x and y component counts must be between 1 and 9 inclusive.")
@@ -186,7 +172,7 @@ static func encode(texture: Texture2D, components_x: int = 4, components_y: int 
 	var ac := []
 	for y in range(components_y):
 		for x in range(components_x):
-			var color := multiply_basis(
+			var color := _multiply_basis(
 				x,
 				y,
 				texture.get_width(),
@@ -205,7 +191,9 @@ static func encode(texture: Texture2D, components_x: int = 4, components_y: int 
 	if ac.size() > 0:
 		var actual_max_value := 0.0
 		for ac_color in ac:
-			var color_max_value: float = max(abs(ac_color.x), max(abs(ac_color.y), abs(ac_color.z)))
+			var color_max_value: float = max(
+				abs(ac_color.x), max(abs(ac_color.y), abs(ac_color.z))
+			)
 			actual_max_value = max(color_max_value, actual_max_value)
 		var quantised_max_value := int(max(0, min(82, floor(actual_max_value * 166 - 0.5))))
 		max_value = (quantised_max_value + 1) / 166.0
@@ -222,7 +210,9 @@ static func encode(texture: Texture2D, components_x: int = 4, components_y: int 
 
 	for ac_color in ac:
 		blurhash += base83_encode(
-			int(max(0, min(18, floor(sign_pow(ac_color.x / max_value, 0.5) * 9 + 9.5)))) * 19 * 19 +
+			int(
+				max(0, min(18, floor(sign_pow(ac_color.x / max_value, 0.5) * 9 + 9.5)))
+			) * 19 * 19 +
 			int(max(0, min(18, floor(sign_pow(ac_color.y / max_value, 0.5) * 9 + 9.5)))) * 19 +
 			int(max(0, min(18, floor(sign_pow(ac_color.z / max_value, 0.5) * 9 + 9.5)))),
 			2
@@ -231,7 +221,10 @@ static func encode(texture: Texture2D, components_x: int = 4, components_y: int 
 	return blurhash
 
 
-static  func multiply_basis(component_x: int, component_y: int, width: int, height: int, data: PackedByteArray, format: int) -> Vector3:
+# A helper function (internal use only)
+static func _multiply_basis(
+	component_x: int, component_y: int, width: int, height: int, data: PackedByteArray, format: int
+	) -> Vector3:
 	var r := 0.0
 	var g := 0.0
 	var b := 0.0
